@@ -1,0 +1,16 @@
+version: '3.3'
+services:
+  backend:
+    build: ./django_project
+    ports:
+    - "8080:8080"
+    volumes:
+    - "./django_project/:/code"
+    command: sh -c "poetry run python manage.py migrate
+                    && poetry run python manage.py runserver 0.0.0.0:8080"
+    depends_on:
+      - db
+  db:
+    image: postgres:10
+    environment:
+      - POSTGRES_PASSWORD=postgres
