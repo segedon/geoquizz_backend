@@ -54,6 +54,29 @@ class UserInfoTest(APITestCase):
         self.assertEqual(response.data, {'login': self.login})
 
 
+class ChangePasswordTest(APITestCase):
+    def setUp(self) -> None:
+        self.login = 'test'
+        self.password = 'test'
+        self.new_password = 'test1'
+        self.user = User.objects.create_user(self.login,
+                                             self.password)
+        self.client.login(username=self.login,
+                          password=self.password)
+        self.url = reverse('change_password')
+
+    def test_change_password(self):
+        data = {
+            'old_password': self.password,
+            'new_password': self.new_password
+        }
+        response = self.client.post(self.url, data=data, format='json')
+        self.user.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(self.user.check_password(self.new_password))
+
+
+
 
 
 

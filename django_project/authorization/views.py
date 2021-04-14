@@ -6,7 +6,7 @@ from rest_framework.exceptions import AuthenticationFailed
 from rest_framework import permissions
 from drf_yasg.utils import swagger_auto_schema
 from .serializers import (UserRegistrationSerializer, UserLoginSerializer,
-                          UserReadSerializer)
+                          UserReadSerializer, UserChangePasswordSerializer)
 
 
 @swagger_auto_schema(method='POST', request_body=UserRegistrationSerializer(),
@@ -71,6 +71,20 @@ def user_info(request):
     """
     user_data = UserReadSerializer(request.user).data
     return Response(user_data)
+
+
+@swagger_auto_schema(method='POST', tags=['Авторизация'])
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated, ])
+def change_password(request):
+    """
+    Смена пароля
+    """
+    serializer = UserChangePasswordSerializer(request.user,
+                                              data=request.data)
+    serializer.is_valid(raise_exception=True)
+    serializer.save()
+    return Response({'status': 'success'})
 
 
 

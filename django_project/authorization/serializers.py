@@ -22,3 +22,22 @@ class UserReadSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['login', ]
+
+
+class UserChangePasswordSerializer(serializers.ModelSerializer):
+    old_password = serializers.CharField()
+    new_password = serializers.CharField()
+
+    def validate_old_password(self, value):
+        if not self.instance.check_password(value):
+            raise serializers.ValidationError('Введен неправильный пароль')
+        return value
+
+    def update(self, instance, validated_data):
+        instance.set_password(validated_data['new_password'])
+        instance.save()
+        return instance
+
+    class Meta:
+        model = User
+        fields = ['old_password', 'new_password', ]
