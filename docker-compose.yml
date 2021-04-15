@@ -9,8 +9,15 @@ services:
     command: sh -c "poetry run python manage.py migrate
                     && poetry run python manage.py runserver 0.0.0.0:8080"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
   db:
-    image: postgres:10
+    image: kartoza/postgis
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     environment:
+      - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
