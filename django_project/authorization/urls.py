@@ -10,3 +10,4 @@ urlpatterns = [
     path('info/', user_info, name='user_info'),
     path('change_password/', change_password, name='change_password'),
 ]
+
