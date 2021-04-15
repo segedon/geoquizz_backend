@@ -1,3 +1,4 @@
 .django_project
 .idea
 *.pyc
+django_project/media
