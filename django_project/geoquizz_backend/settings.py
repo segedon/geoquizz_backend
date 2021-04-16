@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.gis',
     'drf_yasg',
     'rest_framework',
+    'rest_framework_gis',
     'authorization',
     'game',
 ]
