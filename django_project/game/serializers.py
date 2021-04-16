@@ -1,4 +1,6 @@
 from rest_framework import serializers
+from rest_framework_gis.serializers import (GeometrySerializerMethodField,
+                                            GeometryField)
 from .models import Category, Game, Round
 
 
@@ -33,7 +35,20 @@ class GameReadSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class RoundSetPointSerializer(serializers.ModelSerializer):
+    user_point = GeometryField()
+
+    class Meta:
+        model = Round
+        fields = ['user_point']
+
+
 class RoundReadSerializer(serializers.ModelSerializer):
+    random_point = GeometrySerializerMethodField()
+
+    def get_random_point(self, obj):
+        return obj.random_point.point
+
     class Meta:
         model = Round
         fields = '__all__'

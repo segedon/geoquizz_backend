@@ -1,5 +1,8 @@
+import json
 from unittest.mock import patch, PropertyMock
+import geojson
 from django.urls import reverse
+from django.contrib.gis.geos import GEOSGeometry
 from rest_framework import status
 from rest_framework.test import APITestCase
 from authorization.factories import UserFactory
@@ -84,7 +87,26 @@ class GameViewSetTest(APITestCase):
         url = reverse('game-start_game')
         response = self.client.post(url, data=data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        print(response.data)
+
+
+class RoundViewSetTest(APITestCase):
+    def setUp(self) -> None:
+        self.user = UserFactory(password='password')
+        self.client.login(username=self.user.login,
+                          password='password')
+
+    def test_set_user_point(self):
+        round = RoundFactory()
+        data = {
+            'user_point': geojson.utils.generate_random('Point')
+        }
+        url = reverse('round-set_user_point', kwargs={'pk': round.pk})
+        response = self.client.patch(url, data=data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        round.refresh_from_db(fields=['user_point'])
+        self.assertEqual(round.user_point,
+                         GEOSGeometry(json.dumps(data['user_point'])))
+
 
 
 
