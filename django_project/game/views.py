@@ -6,7 +6,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from drf_yasg.utils import swagger_auto_schema
 from .serializers import (CategorySerializer, GameReadSerializer, GameStartRequestBodySerializer,
-                          RoundReadSerializer, RoundSetPointSerializer, GameStartResponseSerializer)
+                          RoundReadSerializer, RoundSetPointRequestBodySerializer, GameStartResponseSerializer,
+                          RoundSetPointResponseSerializer)
 from .models import Category, Game, Round
 
 
@@ -22,7 +23,7 @@ class GameViewSet(viewsets.ReadOnlyModelViewSet):
 
     @swagger_auto_schema(method='POST', request_body=GameStartRequestBodySerializer(),
                         responses={
-                            '201': RoundReadSerializer()
+                            '201': GameStartResponseSerializer()
                         })
     @action(methods=['POST'], detail=False, url_name='start_game')
     def start_game(self, request):
@@ -68,16 +69,19 @@ class RoundViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Round.objects.all()
     serializer_class = RoundReadSerializer
 
-    @swagger_auto_schema(method='PATCH', request_body=RoundSetPointSerializer())
+    @swagger_auto_schema(method='PATCH', request_body=RoundSetPointRequestBodySerializer(),
+                         responses={
+                             '200': RoundSetPointResponseSerializer()
+                         })
     @action(methods=['PATCH'], detail=True, url_name='set_user_point')
     def set_user_point(self, request, pk):
         """
         Указание пользователем точки
         """
         round = self.get_object()
-        serializer = RoundSetPointSerializer(round, data=request.data)
+        serializer = RoundSetPointRequestBodySerializer(round, data=request.data)
         serializer.is_valid(raise_exception=True)
         round = serializer.save()
         round.date_end = timezone.now()
         round.save()
-        return Response()
+        return Response(RoundSetPointResponseSerializer(round).data)

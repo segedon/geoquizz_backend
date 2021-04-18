@@ -2,11 +2,11 @@ import json
 from unittest.mock import patch, PropertyMock
 import geojson
 from django.urls import reverse
-from django.contrib.gis.geos import GEOSGeometry
+from django.contrib.gis.geos import GEOSGeometry, LineString
 from rest_framework import status
 from rest_framework.test import APITestCase
 from authorization.factories import UserFactory
-from .models import Point, Game
+from .models import Point, Game, Round
 from .factories import (PointFactory, CategoryFactory, GameFactory,
                         RoundFactory)
 from .serializers import CategorySerializer
@@ -51,6 +51,12 @@ class GameModelTest(APITestCase):
         self.assertIn(point_1.pk, points_ids)
         self.assertIn(point_2.pk, points_ids)
 
+    @patch.object(Round, 'score', new_callable=PropertyMock)
+    def test_score(self, mock_round_score):
+        mock_round_score.return_value = 1
+        game = GameFactory()
+        generate_rounds_for_game(game, 10)
+        self.assertEqual(game.score, 10)
 
 class RoundModelTest(APITestCase):
     def test_set_round_num(self):
@@ -71,6 +77,23 @@ class RoundModelTest(APITestCase):
         round = RoundFactory(game=game)
         round.set_random_point()
         self.assertEqual(round.random_point, point_3)
+
+    def test_get_score(self):
+        user_point = GEOSGeometry(json.dumps(geojson.utils.generate_random('Point')))
+        random_point = PointFactory()
+        _round = RoundFactory()
+        ls = LineString(user_point, random_point.point, srid=4326)
+        ls.transform(54009)
+        distance = ls.length
+        score = 5000
+        if distance > 150:
+            score -= distance
+        score = score if score > 0 else 0
+        _round.user_point = user_point
+        _round.random_point = random_point
+        _round.save()
+        self.assertEqual(_round.score, score)
+
 
 
 class GameViewSetTest(APITestCase):
@@ -99,7 +122,7 @@ class RoundViewSetTest(APITestCase):
                           password='password')
 
     def test_set_user_point(self):
-        round = RoundFactory()
+        round = RoundFactory(random_point=PointFactory())
         data = {
             'user_point': geojson.utils.generate_random('Point')
         }
@@ -109,6 +132,9 @@ class RoundViewSetTest(APITestCase):
         round.refresh_from_db(fields=['user_point'])
         self.assertEqual(round.user_point,
                          GEOSGeometry(json.dumps(data['user_point'])))
+        self.assertEqual(response.data['score'], round.score)
+        self.assertEqual(response.data['distance_between_points'],
+                         round.distance_between_points)
 
 
 

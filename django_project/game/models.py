@@ -1,6 +1,7 @@
 import random
 from typing import List, Optional
 from django.contrib.gis.db import models
+from django.contrib.gis.geos import LineString
 from authorization.models import User
 
 
@@ -56,6 +57,13 @@ class Game(models.Model):
     is_over = models.BooleanField(default=False, verbose_name='Игра закончена')
 
     @property
+    def score(self):
+        value = 0
+        for _round in self.rounds.all():
+            value += _round.score
+        return value
+
+    @property
     def round_counts(self):
         return self.rounds.all().count()
 
@@ -73,6 +81,29 @@ class Round(models.Model):
     num = models.IntegerField(verbose_name='Номер раунда в игре', null=True, default=None)
     date_start = models.DateTimeField(auto_now_add=True, verbose_name='Время начала раунда')
     date_end = models.DateTimeField(verbose_name='Время окончания раунда', null=True, default=None)
+
+    @property
+    def distance_between_points(self):
+        assert self.random_point is not None, 'Random point is not define'
+        assert self.user_point is not None, 'User point is not define'
+        ls = LineString(self.random_point.point, self.user_point, srid=4326)
+        ls.transform(ct=54009)
+        return ls.length
+
+    @property
+    def score(self):
+        value = 5000
+        try:
+            distance = self.distance_between_points
+        except AssertionError:
+            value = 0
+        else:
+            if distance > 150:
+                value -= distance
+        finally:
+            return value if value > 0 else 0
+
+
 
     def set_random_point(self):
         used_points = self.game.used_points_pk

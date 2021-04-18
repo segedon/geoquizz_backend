@@ -47,12 +47,23 @@ class GameReadSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class RoundSetPointSerializer(serializers.ModelSerializer):
+class RoundSetPointRequestBodySerializer(serializers.ModelSerializer):
     user_point = GeometryField()
 
     class Meta:
         model = Round
         fields = ['user_point']
+
+
+class RoundSetPointResponseSerializer(serializers.ModelSerializer):
+    score = serializers.ReadOnlyField()
+    distance_between_points = serializers.ReadOnlyField()
+
+    class Meta:
+        model = Round
+        fields = ['score', 'distance_between_points']
+
+
 
 
 class RoundReadSerializer(serializers.ModelSerializer):
