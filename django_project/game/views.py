@@ -5,8 +5,8 @@ from rest_framework import permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from drf_yasg.utils import swagger_auto_schema
-from .serializers import (CategorySerializer, GameReadSerializer, GameStartSerializer,
-                          RoundReadSerializer, RoundSetPointSerializer)
+from .serializers import (CategorySerializer, GameReadSerializer, GameStartRequestBodySerializer,
+                          RoundReadSerializer, RoundSetPointSerializer, GameStartResponseSerializer)
 from .models import Category, Game, Round
 
 
@@ -20,7 +20,7 @@ class GameViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = GameReadSerializer
     permission_classes = [permissions.IsAuthenticated, ]
 
-    @swagger_auto_schema(method='POST', request_body=GameStartSerializer(),
+    @swagger_auto_schema(method='POST', request_body=GameStartRequestBodySerializer(),
                         responses={
                             '201': RoundReadSerializer()
                         })
@@ -29,12 +29,12 @@ class GameViewSet(viewsets.ReadOnlyModelViewSet):
         """
         Начало игры
         """
-        serializer = GameStartSerializer(data=request.data, context={'user': request.user})
+        serializer = GameStartRequestBodySerializer(data=request.data, context={'user': request.user})
         serializer.is_valid(raise_exception=True)
         game = serializer.save()
         first_round = Round.objects.create(game=game, num=1)
         first_round.set_random_point()
-        return Response(RoundReadSerializer(first_round).data,
+        return Response(GameStartResponseSerializer(first_round).data,
                         status=status.HTTP_201_CREATED)
 
     @swagger_auto_schema(method='POST', request_body=None,

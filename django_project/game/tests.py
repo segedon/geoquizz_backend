@@ -9,6 +9,7 @@ from authorization.factories import UserFactory
 from .models import Point, Game
 from .factories import (PointFactory, CategoryFactory, GameFactory,
                         RoundFactory)
+from .serializers import CategorySerializer
 
 
 def generate_rounds_for_game(game, count):
@@ -87,6 +88,8 @@ class GameViewSetTest(APITestCase):
         url = reverse('game-start_game')
         response = self.client.post(url, data=data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['category'],
+                         CategorySerializer(category).data)
 
 
 class RoundViewSetTest(APITestCase):
