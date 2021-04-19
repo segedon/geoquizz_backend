@@ -5,6 +5,7 @@ from django.urls import reverse
 from django.contrib.gis.geos import GEOSGeometry, LineString
 from rest_framework import status
 from rest_framework.test import APITestCase
+from rest_framework_gis.serializers import GeometryField
 from authorization.factories import UserFactory
 from .models import Point, Game, Round
 from .factories import (PointFactory, CategoryFactory, GameFactory,
@@ -113,6 +114,8 @@ class GameViewSetTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['category'],
                          CategorySerializer(category).data)
+        self.assertEqual(response.data['random_point'],
+                         GeometryField().to_representation(point.point))
 
 
 class RoundViewSetTest(APITestCase):

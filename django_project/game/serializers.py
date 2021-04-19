@@ -16,6 +16,18 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class RoundReadBaseSerializer(serializers.ModelSerializer):
+    random_point = GeometrySerializerMethodField()
+
+    def get_random_point(self, obj):
+        return obj.random_point.point
+
+    class Meta:
+        model = Round
+        fields = '__all__'
+
+
+
 class GameStartRequestBodySerializer(serializers.ModelSerializer):
     category = serializers.SlugRelatedField(queryset=Category.objects.all(),
                                             slug_field='codename')
@@ -29,7 +41,7 @@ class GameStartRequestBodySerializer(serializers.ModelSerializer):
         fields = ['category']
 
 
-class GameStartResponseSerializer(serializers.ModelSerializer):
+class GameStartResponseSerializer(RoundReadBaseSerializer):
     category = serializers.SerializerMethodField()
 
     def get_category(self, obj):
