@@ -1,3 +1,4 @@
+from django.db.models import Avg
 from rest_framework import serializers
 from rest_framework_gis.serializers import (GeometrySerializerMethodField,
                                             GeometryField)
@@ -7,6 +8,11 @@ from .models import Category, Game, Round
 class CategorySerializer(serializers.ModelSerializer):
     points_count = serializers.ReadOnlyField()
     image = serializers.SerializerMethodField()
+    avg_games_score = serializers.SerializerMethodField()
+
+    def get_avg_games_score(self, obj):
+        result = obj.games.finished().aggregate(avg_score=Avg('score'))
+        return result['avg_score']
 
     def get_image(self, instance):
         return instance.image.url if instance.image else None
@@ -68,7 +74,6 @@ class RoundSetPointRequestBodySerializer(serializers.ModelSerializer):
 
 
 class RoundSetPointResponseSerializer(serializers.ModelSerializer):
-    score = serializers.ReadOnlyField()
     distance_between_points = serializers.ReadOnlyField()
 
     class Meta:

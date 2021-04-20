@@ -54,12 +54,15 @@ class GameModelTest(APITestCase):
         self.assertIn(point_1.pk, points_ids)
         self.assertIn(point_2.pk, points_ids)
 
-    @patch.object(Round, 'score', new_callable=PropertyMock)
-    def test_score(self, mock_round_score):
-        mock_round_score.return_value = 1
+    @patch.object(Round, 'set_score')
+    def test_score(self, mock_method):
         game = GameFactory()
-        generate_rounds_for_game(game, 10)
-        self.assertEqual(game.score, 10)
+        round_1 = RoundFactory(score=1, game=game)
+        round_2 = RoundFactory(score=2, game=game)
+        game.set_score()
+        game.save()
+        self.assertEqual(game.score, 3)
+
 
 class RoundModelTest(APITestCase):
     def test_set_round_num(self):
@@ -133,13 +136,28 @@ class RoundViewSetTest(APITestCase):
         }
         url = reverse('round-set_user_point', kwargs={'pk': round.pk})
         response = self.client.patch(url, data=data, format='json')
+        round.refresh_from_db(fields=['user_point', 'score'])
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        round.refresh_from_db(fields=['user_point'])
         self.assertEqual(round.user_point,
                          GEOSGeometry(json.dumps(data['user_point'])))
         self.assertEqual(response.data['score'], round.score)
         self.assertEqual(response.data['distance_between_points'],
                          round.distance_between_points)
+
+
+class CategoryViewSetTest(APITestCase):
+    def setUp(self) -> None:
+        self.user = UserFactory(password='password')
+        self.client.login(username=self.user.login,
+                          password='password')
+
+    def test_set_like(self):
+        category = CategoryFactory()
+        game = GameFactory(category=category, user=self.user, is_over=True)
+        url = reverse('category-set_like', kwargs={'pk': category.pk})
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn(self.user, category.likes.all())
 
 
 class PlayInCategoryPermissionTest(APITestCase):
@@ -153,7 +171,8 @@ class PlayInCategoryPermissionTest(APITestCase):
 
     def test_allow(self):
         game = GameFactory(user=self.user,
-                           category=self.category)
+                           category=self.category,
+                           is_over=True)
         self.assertTrue(self.permission.has_object_permission(self.request,
                                                               self.view,
                                                               self.category))

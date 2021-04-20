@@ -1,10 +1,12 @@
 from django.utils import timezone
+from django.db.models import F
 from rest_framework import viewsets
 from rest_framework import status
 from rest_framework import permissions
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 from drf_yasg.utils import swagger_auto_schema
+from authorization.models import User
 from .serializers import (CategorySerializer, GameReadSerializer, GameStartRequestBodySerializer,
                           RoundReadSerializer, RoundSetPointRequestBodySerializer, GameStartResponseSerializer,
                           RoundSetPointResponseSerializer)
@@ -16,15 +18,17 @@ class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
+    @swagger_auto_schema(method='POST',
+                         responses={
+                             '200': CategorySerializer()
+                         }
+                         )
     @action(methods=['POST'], detail=True, url_name='set_like',
             permission_classes=[PlayInCategoryPermission, ])
     def set_like(self, request, pk):
         category = self.get_object()
         category.likes.add(request.user)
         return Response(CategorySerializer(category).data)
-
-
-
 
 
 class GameViewSet(viewsets.ReadOnlyModelViewSet):
@@ -46,6 +50,7 @@ class GameViewSet(viewsets.ReadOnlyModelViewSet):
         game = serializer.save()
         first_round = Round.objects.create(game=game, num=1)
         first_round.set_random_point()
+        first_round.save()
         return Response(GameStartResponseSerializer(first_round).data,
                         status=status.HTTP_201_CREATED)
 
@@ -62,6 +67,7 @@ class GameViewSet(viewsets.ReadOnlyModelViewSet):
         next_round = Round.objects.create(game=game)
         next_round.set_round_num()
         next_round.set_random_point()
+        next_round.save()
         return Response(RoundReadSerializer(next_round).data,
                         status=status.HTTP_201_CREATED)
 
@@ -72,8 +78,14 @@ class GameViewSet(viewsets.ReadOnlyModelViewSet):
         """
         game = self.get_object()
         game.is_over = True
+        game.set_score()
         game.save()
         return Response(GameReadSerializer(game).data)
+
+    def get_queryset(self):
+        if self.action in ['next_round', 'end_game']:
+            return self.queryset.active()
+        return super().get_queryset()
 
 
 class RoundViewSet(viewsets.ReadOnlyModelViewSet):
@@ -94,5 +106,9 @@ class RoundViewSet(viewsets.ReadOnlyModelViewSet):
         serializer.is_valid(raise_exception=True)
         round = serializer.save()
         round.date_end = timezone.now()
+        round.set_score()
         round.save()
         return Response(RoundSetPointResponseSerializer(round).data)
+
+
+

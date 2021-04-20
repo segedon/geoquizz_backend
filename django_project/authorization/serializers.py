@@ -1,4 +1,6 @@
+from django.db.models import Max, Avg
 from rest_framework import serializers
+from game.models import Round
 from .models import User
 
 
@@ -19,9 +21,38 @@ class UserLoginSerializer(serializers.Serializer):
 
 
 class UserReadSerializer(serializers.ModelSerializer):
+    games_count = serializers.SerializerMethodField()
+    best_game_score = serializers.SerializerMethodField()
+    avg_game_score = serializers.SerializerMethodField()
+    best_round_score = serializers.SerializerMethodField()
+    avg_round_score = serializers.SerializerMethodField()
+
+    def get_best_round_score(self, obj):
+        result = Round.objects.filter(game__user=obj, game__is_over=True).\
+            aggregate(best_score=Max('score'))
+        return result['best_score']
+
+    def get_avg_round_score(self, obj):
+        result = Round.objects.filter(game__user=obj, game__is_over=True). \
+            aggregate(avg_score=Avg('score', distinct=True))
+        return result['avg_score']
+
+    def get_avg_game_score(self, obj):
+        result = obj.games.finished().aggregate(avg_score=Avg('score'))
+        return result['avg_score']
+
+    def get_best_game_score(self, obj):
+        result = obj.games.finished().aggregate(best_score=Max('score'))
+        return result['best_score']
+
+    def get_games_count(self, obj):
+        return obj.games.finished().count()
+
+
     class Meta:
         model = User
-        fields = ['login', 'id']
+        fields = ['login', 'id', 'games_count', 'best_game_score', 'avg_game_score',
+                  'best_round_score', 'avg_round_score']
 
 
 class UserChangePasswordSerializer(serializers.ModelSerializer):

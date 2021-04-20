@@ -51,7 +51,6 @@ class UserInfoTest(APITestCase):
     def test_get_user_info(self):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data, {'login': self.login, 'id': self.user.pk})
 
 
 class ChangePasswordTest(APITestCase):
