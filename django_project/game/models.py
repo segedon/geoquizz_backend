@@ -11,6 +11,7 @@ class Category(models.Model):
     description = models.TextField(verbose_name='Описание')
     image = models.ImageField(verbose_name='Картинка')
     rounds_count = models.IntegerField(verbose_name='Число раундов')
+    likes = models.ManyToManyField(to=User, related_name='liked_category')
 
     @property
     def points_count(self):
@@ -51,7 +52,7 @@ class Point(models.Model):
 class Game(models.Model):
     category = models.ForeignKey(to=Category, on_delete=models.CASCADE,
                                  verbose_name='Категория')
-    user = models.ForeignKey(to=User, on_delete=models.CASCADE,
+    user = models.ForeignKey(to=User, on_delete=models.CASCADE, related_name='games',
                              verbose_name='Пользователь')
     create_date = models.DateTimeField(auto_now_add=True)
     is_over = models.BooleanField(default=False, verbose_name='Игра закончена')

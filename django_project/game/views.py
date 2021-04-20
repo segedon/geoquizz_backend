@@ -9,11 +9,22 @@ from .serializers import (CategorySerializer, GameReadSerializer, GameStartReque
                           RoundReadSerializer, RoundSetPointRequestBodySerializer, GameStartResponseSerializer,
                           RoundSetPointResponseSerializer)
 from .models import Category, Game, Round
+from .permissions import PlayInCategoryPermission
 
 
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+
+    @action(methods=['POST'], detail=True, url_name='set_like',
+            permission_classes=[PlayInCategoryPermission, ])
+    def set_like(self, request, pk):
+        category = self.get_object()
+        category.likes.add(request.user)
+        return Response(CategorySerializer(category).data)
+
+
+
 
 
 class GameViewSet(viewsets.ReadOnlyModelViewSet):

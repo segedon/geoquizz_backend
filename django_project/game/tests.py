@@ -4,13 +4,15 @@ import geojson
 from django.urls import reverse
 from django.contrib.gis.geos import GEOSGeometry, LineString
 from rest_framework import status
-from rest_framework.test import APITestCase
+from rest_framework.test import APITestCase, APIRequestFactory, force_authenticate
 from rest_framework_gis.serializers import GeometryField
 from authorization.factories import UserFactory
 from .models import Point, Game, Round
 from .factories import (PointFactory, CategoryFactory, GameFactory,
                         RoundFactory)
 from .serializers import CategorySerializer
+from .permissions import PlayInCategoryPermission
+from .views import CategoryViewSet
 
 
 def generate_rounds_for_game(game, count):
@@ -139,6 +141,27 @@ class RoundViewSetTest(APITestCase):
         self.assertEqual(response.data['distance_between_points'],
                          round.distance_between_points)
 
+
+class PlayInCategoryPermissionTest(APITestCase):
+    def setUp(self) -> None:
+        self.category = CategoryFactory()
+        self.user = UserFactory()
+        self.permission = PlayInCategoryPermission()
+        self.view = CategoryViewSet()
+        self.request = APIRequestFactory().post('/')
+        self.request.user = self.user
+
+    def test_allow(self):
+        game = GameFactory(user=self.user,
+                           category=self.category)
+        self.assertTrue(self.permission.has_object_permission(self.request,
+                                                              self.view,
+                                                              self.category))
+
+    def test_deny(self):
+        self.assertFalse(self.permission.has_object_permission(self.request,
+                                                              self.view,
+                                                              self.category))
 
 
 
