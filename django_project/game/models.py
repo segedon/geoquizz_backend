@@ -65,7 +65,7 @@ class GameQueryset(models.QuerySet):
         return self.filter(is_over=True)
 
     def active(self):
-        return self.filter(end_date__isnull=False)
+        return self.filter(is_over=False)
 
 
 class Game(models.Model):

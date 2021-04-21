@@ -122,6 +122,14 @@ class GameViewSetTest(APITestCase):
         self.assertEqual(response.data['random_point'],
                          GeometryField().to_representation(point.point))
 
+    def test_next_round(self):
+        category = CategoryFactory()
+        point = PointFactory(category=category)
+        game = GameFactory(category=category)
+        url = reverse('game-next_round', kwargs={'pk': game.pk})
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
 
 class RoundViewSetTest(APITestCase):
     def setUp(self) -> None:
