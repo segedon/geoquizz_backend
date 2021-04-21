@@ -126,7 +126,7 @@ class Round(models.Model):
             elif 100000 < distance <= 500000:
                 value = 3000 - distance * 0.002
             elif 500000 < distance:
-                value = 2000 - distance * 0.0001
+                value = 2000 - distance * 0.001
         finally:
             self.score = value if value > 0 else 0
 

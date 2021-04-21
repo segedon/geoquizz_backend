@@ -116,6 +116,8 @@ class GameViewSetTest(APITestCase):
         }
         url = reverse('game-start_game')
         response = self.client.post(url, data=data, format='json')
+        game = Game.objects.get(pk=response.data['game'])
+        self.assertEqual(game.is_over, False)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['category'],
                          CategorySerializer(category).data)
