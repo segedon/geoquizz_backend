@@ -88,7 +88,7 @@ def change_password(request):
     return Response({'status': 'success'})
 
 
-@swagger_auto_schema(method='GET', request_body={'200': CategorySerializer(many=True)})
+@swagger_auto_schema(method='GET', responses={'200': CategorySerializer(many=True)})
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated, ])
 def liked_category(request):

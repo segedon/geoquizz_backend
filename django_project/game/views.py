@@ -54,7 +54,7 @@ class GameViewSet(viewsets.ReadOnlyModelViewSet):
         return Response(GameStartResponseSerializer(first_round).data,
                         status=status.HTTP_201_CREATED)
 
-    @swagger_auto_schema(method='POST', request_body=None,
+    @swagger_auto_schema(method='POST',
                          responses={
                              '201': RoundReadSerializer()
                          })
