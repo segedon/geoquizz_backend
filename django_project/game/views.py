@@ -9,7 +9,7 @@ from drf_yasg.utils import swagger_auto_schema
 from authorization.models import User
 from .serializers import (CategorySerializer, GameReadSerializer, GameStartRequestBodySerializer,
                           RoundReadSerializer, RoundSetPointRequestBodySerializer, GameStartResponseSerializer,
-                          RoundSetPointResponseSerializer)
+                          RoundSetPointResponseSerializer, TopPlayersResponseSerializer)
 from .models import Category, Game, Round
 from .permissions import PlayInCategoryPermission
 
@@ -111,4 +111,14 @@ class RoundViewSet(viewsets.ReadOnlyModelViewSet):
         return Response(RoundSetPointResponseSerializer(round).data)
 
 
+@swagger_auto_schema(method='GET', responses={'200': TopPlayersResponseSerializer(many=True)})
+@api_view(['GET'])
+def top_players(request):
+    limit = int(request.GET.get('limit', 10))
+    query = 'SELECT u.id as id, u.login as login, avg((gg.score::float / gc.max_score::float) * 100) as avg_score ' \
+            'FROM users u INNER JOIN game_game gg on u.id = gg.user_id ' \
+            'INNER JOIN game_category gc on gg.category_id = gc.id ' \
+            'GROUP BY u.id, u.login ORDER BY avg_score DESC'
+    result = User.objects.raw(query)[:limit]
+    return Response(TopPlayersResponseSerializer(result, many=True).data)
 

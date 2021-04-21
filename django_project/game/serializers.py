@@ -81,8 +81,6 @@ class RoundSetPointResponseSerializer(serializers.ModelSerializer):
         fields = ['score', 'distance_between_points']
 
 
-
-
 class RoundReadSerializer(serializers.ModelSerializer):
     random_point = GeometrySerializerMethodField()
 
@@ -92,3 +90,9 @@ class RoundReadSerializer(serializers.ModelSerializer):
     class Meta:
         model = Round
         fields = '__all__'
+
+
+class TopPlayersResponseSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    login = serializers.CharField()
+    avg_score = serializers.FloatField()

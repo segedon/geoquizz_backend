@@ -12,7 +12,7 @@ from .factories import (PointFactory, CategoryFactory, GameFactory,
                         RoundFactory)
 from .serializers import CategorySerializer
 from .permissions import PlayInCategoryPermission
-from .views import CategoryViewSet
+from .views import CategoryViewSet, top_players
 
 
 def generate_rounds_for_game(game, count):
@@ -183,6 +183,30 @@ class PlayInCategoryPermissionTest(APITestCase):
                                                               self.category))
 
 
+class TopPlayersViewTest(APITestCase):
+    def test_top_players(self):
+        request_factory = APIRequestFactory()
+        url = reverse('top_players')
+        request = request_factory.get(url, {'limit': 5})
+        user_1 = UserFactory()
+        user_2 = UserFactory()
+        category = CategoryFactory(rounds_count=1)
+        game_1 = GameFactory(category=category,
+                             user=user_1,
+                             score=1000)
+        game_2 = GameFactory(category=category,
+                             user=user_1,
+                             score=2000)
+        game_3 = GameFactory(category=category,
+                             user=user_2,
+                             score=3000)
+        game_4 = GameFactory(category=category,
+                             user=user_2,
+                             score=4000)
+        response = top_players(request)
+        self.assertEqual(response.data[0], {'id': user_2.id,
+                                            'login': user_2.login,
+                                            'avg_score': (game_3.score/category.max_score + game_4.score/category.max_score)*100/2})
 
 
 
