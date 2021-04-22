@@ -33,13 +33,15 @@ class UserReadSerializer(serializers.ModelSerializer):
         return result['best_score']
 
     def get_avg_round_score(self, obj):
-        result = Round.objects.filter(game__user=obj, game__is_over=True). \
+        query = Round.objects.filter(game__user=obj, game__is_over=True). \
             aggregate(avg_score=Avg('score', distinct=True))
-        return round(result['avg_score'])
+        avg_round_score = query['avg_score']
+        return round(avg_round_score) if avg_round_score is not None else avg_round_score
 
     def get_avg_game_score(self, obj):
-        result = obj.games.finished().aggregate(avg_score=Avg('score'))
-        return round(result['avg_score'])
+        query = obj.games.finished().aggregate(avg_score=Avg('score'))
+        avg_game_score = query['avg_score']
+        return round(avg_game_score) if avg_game_score is not None else None
 
     def get_best_game_score(self, obj):
         result = obj.games.finished().aggregate(best_score=Max('score'))
