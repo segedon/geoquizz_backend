@@ -30,6 +30,11 @@ class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
         category.likes.add(request.user)
         return Response(CategorySerializer(category).data)
 
+    def get_serializer_context(self):
+        context = super(CategoryViewSet, self).get_serializer_context()
+        context['user'] = self.request.user
+        return context
+
 
 class GameViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Game.objects.all()

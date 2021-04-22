@@ -231,4 +231,22 @@ class CategorySerializerTest(APITestCase):
         data = CategorySerializer(category).data
         self.assertEqual(data['players_count'], 2)
 
+    def test_like_true(self):
+        category = CategoryFactory()
+        user = UserFactory()
+        user.liked_category.add(category)
+        data = CategorySerializer(category, context={'user': user}).data
+        self.assertTrue(data['like'])
+
+    def test_like_false(self):
+        category = CategoryFactory()
+        user = UserFactory()
+        data = CategorySerializer(category, context={'user': user}).data
+        self.assertFalse(data['like'])
+
+    def test_like_without_user_in_context(self):
+        category = CategoryFactory()
+        data = CategorySerializer(category).data
+        self.assertFalse(data['like'])
+
 

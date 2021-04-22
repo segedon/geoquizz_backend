@@ -1,4 +1,5 @@
 from django.db.models import Avg
+from django.contrib.auth.models import AnonymousUser
 from rest_framework import serializers
 from rest_framework_gis.serializers import (GeometrySerializerMethodField,
                                             GeometryField)
@@ -11,6 +12,13 @@ class CategorySerializer(serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
     avg_games_score = serializers.SerializerMethodField()
     players_count = serializers.SerializerMethodField()
+    like = serializers.SerializerMethodField()
+
+    def get_like(self, obj):
+        user = self.context.get('user', None)
+        if user is None or user.is_anonymous:
+            return False
+        return user.liked_category.filter(pk=obj.pk).exists()
 
     def get_players_count(self, obj):
         return User.objects.filter(games__category=obj).distinct().count()
