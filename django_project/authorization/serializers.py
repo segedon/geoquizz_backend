@@ -35,11 +35,11 @@ class UserReadSerializer(serializers.ModelSerializer):
     def get_avg_round_score(self, obj):
         result = Round.objects.filter(game__user=obj, game__is_over=True). \
             aggregate(avg_score=Avg('score', distinct=True))
-        return result['avg_score']
+        return round(result['avg_score'])
 
     def get_avg_game_score(self, obj):
         result = obj.games.finished().aggregate(avg_score=Avg('score'))
-        return result['avg_score']
+        return round(result['avg_score'])
 
     def get_best_game_score(self, obj):
         result = obj.games.finished().aggregate(best_score=Max('score'))

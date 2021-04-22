@@ -110,7 +110,7 @@ class Round(models.Model):
         assert self.user_point is not None, 'User point is not define'
         ls = LineString(self.random_point.point, self.user_point, srid=4326)
         ls.transform(ct=54009)
-        return ls.length
+        return round(ls.length)
 
     def set_score(self):
         value = 5000
