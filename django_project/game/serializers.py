@@ -2,6 +2,7 @@ from django.db.models import Avg
 from rest_framework import serializers
 from rest_framework_gis.serializers import (GeometrySerializerMethodField,
                                             GeometryField)
+from authorization.models import User
 from .models import Category, Game, Round
 
 
@@ -9,6 +10,10 @@ class CategorySerializer(serializers.ModelSerializer):
     points_count = serializers.ReadOnlyField()
     image = serializers.SerializerMethodField()
     avg_games_score = serializers.SerializerMethodField()
+    players_count = serializers.SerializerMethodField()
+
+    def get_players_count(self, obj):
+        return User.objects.filter(games__category=obj).distinct().count()
 
     def get_avg_games_score(self, obj):
         result = obj.games.finished().aggregate(avg_score=Avg('score'))
@@ -96,3 +101,4 @@ class TopPlayersResponseSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     login = serializers.CharField()
     avg_score = serializers.FloatField()
+    sum_score = serializers.IntegerField()

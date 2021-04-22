@@ -115,8 +115,8 @@ class RoundViewSet(viewsets.ReadOnlyModelViewSet):
 @api_view(['GET'])
 def top_players(request):
     limit = int(request.GET.get('limit', 10))
-    query = 'SELECT u.id as id, u.login as login, avg((gg.score::float / gc.max_score::float) * 100) as avg_score ' \
-            'FROM users u INNER JOIN game_game gg on u.id = gg.user_id ' \
+    query = 'SELECT u.id as id, u.login as login, avg((gg.score::float / gc.max_score::float) * 100) as avg_score, ' \
+            'sum(gg.score) as sum_score FROM users u INNER JOIN game_game gg on u.id = gg.user_id ' \
             'INNER JOIN game_category gc on gg.category_id = gc.id ' \
             'GROUP BY u.id, u.login ORDER BY avg_score DESC'
     result = User.objects.raw(query)[:limit]

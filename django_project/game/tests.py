@@ -216,8 +216,19 @@ class TopPlayersViewTest(APITestCase):
         response = top_players(request)
         self.assertEqual(response.data[0], {'id': user_2.id,
                                             'login': user_2.login,
-                                            'avg_score': (game_3.score/category.max_score + game_4.score/category.max_score)*100/2})
+                                            'avg_score': (game_3.score/category.max_score + game_4.score/category.max_score)*100/2,
+                                            'sum_score': 7000})
 
 
+class CategorySerializerTest(APITestCase):
+    def test_players_count(self):
+        category = CategoryFactory()
+        user_1 = UserFactory()
+        user_2 = UserFactory()
+        game_1 = GameFactory(user=user_1, category=category)
+        game_2 = GameFactory(user=user_2, category=category)
+        game_3 = GameFactory(user=user_2, category=category)
+        data = CategorySerializer(category).data
+        self.assertEqual(data['players_count'], 2)
 
 
