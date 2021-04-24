@@ -23,6 +23,7 @@ def user_registration(request):
     serializer = UserRegistrationSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     user = serializer.save()
+    login(request, user)
     user_data = UserReadSerializer(user).data
     return Response(user_data, status=status.HTTP_201_CREATED)
 
