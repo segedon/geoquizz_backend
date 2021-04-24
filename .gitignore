@@ -2,3 +2,4 @@
 .idea
 *.pyc
 django_project/media
+postgres_data
