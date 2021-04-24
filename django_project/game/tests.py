@@ -20,6 +20,22 @@ def generate_rounds_for_game(game, count):
         RoundFactory(game=game)
 
 
+class CategoryModelTest(APITestCase):
+    def setUp(self) -> None:
+        self.category = CategoryFactory()
+
+    def test_difficulty(self):
+        easy_category = CategoryFactory(rounds_count=2)
+        GameFactory(category=easy_category, score=7500)
+        medium_category = CategoryFactory(rounds_count=2)
+        GameFactory(category=medium_category, score=5000)
+        hard_category = CategoryFactory(rounds_count=2)
+        GameFactory(category=hard_category, score=1000)
+        self.assertEqual(easy_category.difficulty, 'easy')
+        self.assertEqual(medium_category.difficulty, 'medium')
+        self.assertEqual(hard_category.difficulty, 'hard')
+
+
 class PointModelTest(APITestCase):
     def setUp(self) -> None:
         self.category = CategoryFactory()

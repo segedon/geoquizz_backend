@@ -13,6 +13,7 @@ class CategorySerializer(serializers.ModelSerializer):
     avg_games_score = serializers.SerializerMethodField()
     players_count = serializers.SerializerMethodField()
     like = serializers.SerializerMethodField()
+    difficulty = serializers.ReadOnlyField()
 
     def get_like(self, obj):
         user = self.context.get('user', None)

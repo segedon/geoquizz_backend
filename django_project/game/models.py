@@ -21,6 +21,20 @@ class Category(models.Model):
     def points_count(self):
         return self.points.all().count()
 
+    @property
+    def difficulty(self):
+        games_count = self.games.all().count()
+        if games_count == 0:
+            return None
+        query = self.games.aggregate(sum_scores=Sum('score'))
+        avg_score = (query['sum_scores'] / (games_count * self.rounds_count* 5000)) * 100
+        if 0 <= avg_score < 30:
+            return 'hard'
+        elif 30 <= avg_score < 60:
+            return 'medium'
+        else:
+            return 'easy'
+
     def __str__(self):
         return self.name
 
